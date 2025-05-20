@@ -202,7 +202,7 @@ class HomeView extends StatelessWidget {
                       },
                       child: circleCard(
                         image: DefaultImages.topup,
-                        title: "Top-up",
+                        title: "Pagar",
                       ),
                     ),
                     InkWell(
@@ -228,7 +228,7 @@ class HomeView extends StatelessWidget {
                       },
                       child: circleCard(
                         image: DefaultImages.transfer,
-                        title: "Transfer",
+                        title: "Reservar",
                       ),
                     )
                   ],
@@ -259,7 +259,7 @@ class HomeView extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Transactions",
+                                "Pagos previos",
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleLarge!
@@ -268,7 +268,7 @@ class HomeView extends StatelessWidget {
                                       fontWeight: FontWeight.w800,
                                     ),
                               ),
-                              Text(
+                              /*Text(
                                 "See all",
                                 style: Theme.of(context)
                                     .textTheme
@@ -279,7 +279,7 @@ class HomeView extends StatelessWidget {
                                         color: HexColor(
                                             AppTheme.primaryColorString!)),
                               ),
-                            ],
+                          */  ],
                           ),
                         ),
                         const SizedBox(height: 20),

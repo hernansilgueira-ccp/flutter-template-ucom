@@ -102,7 +102,7 @@ class _TransferScreenState extends State<TransferScreen> {
                                 ? Column(
                                     children: [
                                       Text(
-                                        "Where do you want to\ntransfer?",
+                                        "Desea reservar un lugar?",
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge!
@@ -152,7 +152,7 @@ class _TransferScreenState extends State<TransferScreen> {
                                                   )),
                                               const SizedBox(width: 14),
                                               Text(
-                                                "Select Bank",
+                                                "Seleccionar piso",
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .titleLarge!
