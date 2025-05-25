@@ -2,6 +2,7 @@
 
 import 'package:finpay/config/images.dart';
 import 'package:finpay/controller/login_controller.dart';
+import 'package:finpay/view/dashboard/dashboard_view.dart';
 import 'package:finpay/view/signup/signup_screen.dart';
 import 'package:finpay/view/tab_screen.dart';
 import 'package:finpay/widgets/custom_button.dart';
@@ -212,8 +213,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     loginController.pswdController.value.text);
                                 if (loginController
                                     .pswdController.value.text.isNotEmpty) {
-                                  Get.to(
-                                    const TabScreen(),
+                                  Get.offAll(
+                                    DashboardView(),
+                                    //const TabScreen(),
                                     transition: Transition.rightToLeft,
                                     duration: const Duration(milliseconds: 500),
                                   );
