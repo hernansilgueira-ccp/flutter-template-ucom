@@ -1,9 +1,8 @@
 [
-  { "codigoPiso": "P1", "codigoLugar": "P1L001", "descripcionLugar": "Lugar 1","estado" :"DISPONIBLE"},
-  { "codigoPiso": "P1", "codigoLugar": "P1L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE"},
-  { "codigoPiso": "P2", "codigoLugar": "P2L001", "descripcionLugar": "Lugar 1" ,"estado" :"DISPONIBLE"},
-    { "codigoPiso": "P1", "codigoLugar": "P1L003", "descripcionLugar": "Lugar 3" ,"estado" :"DISPONIBLE"},
-  { "codigoPiso": "P1", "codigoLugar": "P1L004", "descripcionLugar": "Lugar 4" ,"estado" :"DISPONIBLE"},
-
-  { "codigoPiso": "P2", "codigoLugar": "P2L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE"}
+  { "id": 1, "nombre": "PB1-1", "precioHora": 20000, "ocupado": false },
+  { "id": 2, "nombre": "PB1-2", "precioHora": 20000, "ocupado": false },
+  { "id": 3, "nombre": "PB1-3", "precioHora": 20000, "ocupado": false },
+  { "id": 4, "nombre": "PA1-1", "precioHora": 40000, "ocupado": false },
+  { "id": 5, "nombre": "PA1-2", "precioHora": 40000, "ocupado": false },
+  { "id": 6, "nombre": "PA1-3", "precioHora": 40000, "ocupado": false }
 ]

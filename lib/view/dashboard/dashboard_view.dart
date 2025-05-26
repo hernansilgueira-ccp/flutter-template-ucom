@@ -1,8 +1,10 @@
+// dashboard_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:finpay/controller/dashboard_controller.dart';
 import 'package:finpay/model/reservas_model.dart';
 import 'package:finpay/view/reservas/reserva_detalle_view.dart';
+import 'package:finpay/model/lugar_disponible_model.dart';
 
 class DashboardView extends StatelessWidget {
   final DashboardController controller = Get.put(DashboardController());
@@ -11,221 +13,187 @@ class DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+        return Scaffold(
+        appBar: AppBar(
+          title: Obx(() {
+            final user = controller.usuario.value;
+            return Row(
+              children: [
+                CircleAvatar(
+                  backgroundImage: AssetImage (user.avatarUrl),
+                ),
+                const SizedBox(width: 10),
+                Text("Hola, ${user.nombre}", style: const TextStyle(fontSize: 18)),
+              ],
+            );
+          }),
+        ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Aquí abres una nueva vista o bottom sheet
-          _mostrarFormularioReserva(context);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text("Nueva Reserva"),
-      ),
-
-      appBar: AppBar(
-        title: const Text("HighLander"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
       body: Obx(() {
         if (controller.reservas.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search Bar
-              TextField(
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: "Where do you want to park?",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade100,
-                ),
+        return ListView(
+          children: [
+            if (controller.reservasActuales.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text("Reservas Actuales", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
-              const SizedBox(height: 20),
-
-              // Current Reservation
-              if (controller.reservasActuales.isNotEmpty)
-                _buildCurrentReservation(controller.reservasActuales.first),
-
-              const SizedBox(height: 16),
-
-              // Upcoming
-              if (controller.reservasProximas.isNotEmpty)
-                _buildUpcoming(controller.reservasProximas.first),
-
-              const SizedBox(height: 16),
-
-              // Recent
-              if (controller.reservasHistorial.isNotEmpty)
-                _buildRecent(controller.reservasHistorial),
-
-              const SizedBox(height: 16),
-
-              // Payment Methods
-              _buildPaymentMethod(),
-
-              const SizedBox(height: 16),
-
-              // Points
-              _buildPoints(),
+              ...controller.reservasActuales.map((r) => _buildReservaCard(r)),
             ],
-          ),
+            if (controller.reservasProximas.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text("Reservas Próximas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              ...controller.reservasProximas.map((r) => _buildReservaCard(r)),
+            ],
+            if (controller.reservasHistorial.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text("Historial", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              ...controller.reservasHistorial.map((r) => _buildReservaCard(r)),
+            ],
+          ],
         );
       }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _mostrarFormularioReserva(context),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
-  Widget _buildCurrentReservation(Reserva r) {
+  Widget _buildReservaCard(Reserva r) {
     return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
         leading: const Icon(Icons.local_parking),
         title: Text(r.lugar),
-        subtitle: Text(r.vehiculo ?? 'XYZ 789'),
-        trailing: ElevatedButton(
-          onPressed: () {
-            controller.cancelarReserva(r);
-            Get.snackbar("Reserva finalizada", "Tu reserva ha sido finalizada.");
-            
-          },
-
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-          child: const Text("End Reservation")
-
+        subtitle: Text(
+          "${r.inicio.day}/${r.inicio.month}/${r.inicio.year} - ${r.duracionHoras}h\nEstado: ${r.estado.name}",
         ),
-      ),
-    );
-  }
-
-  Widget _buildUpcoming(Reserva r) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.calendar_today),
-        title: Text(r.lugar),
-        trailing: TextButton(
-          onPressed: () => Get.to(() => ReservaDetalleView(reserva: r)),
-          child: const Text("Modify"),
+        trailing: Text(
+          "\$${r.costo}",
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
+        onTap: () {
+          Get.to(() => ReservaDetalleView(reserva: r));
+        },
       ),
     );
   }
 
-  Widget _buildRecent(List<Reserva> reservas) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Recent Reservations", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        const SizedBox(height: 8),
-        ...reservas.take(2).map((r) => Card(
-              child: ListTile(
-                leading: const Icon(Icons.local_parking),
-                title: Text(r.lugar),
-                subtitle: Text("${r.inicio.day}/${r.inicio.month} - ${r.duracionHoras} h"),
-                trailing: Text("\$${r.costo.toStringAsFixed(2)}"),
-                onTap: () => Get.to(() => ReservaDetalleView(reserva: r)),
-              ),
-            )),
-        TextButton(
-          onPressed: () {
-            // Navegar al historial completo si se desea
-          },
-          child: const Text("View Reservation History"),
-        )
-      ],
-    );
-  }
-
-  Widget _buildPaymentMethod() {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.credit_card),
-        title: const Text("Visa 1234"),
-        trailing: TextButton(onPressed: () {}, child: const Text("Change")),
-      ),
-    );
-  }
-
-  Widget _buildPoints() {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.star),
-        title: const Text("520 Points"),
-        trailing: TextButton(onPressed: () {}, child: const Text("View Rewards")),
-      ),
-    );
-  }
   void _mostrarFormularioReserva(BuildContext context) {
-  final lugarController = TextEditingController();
-  final vehiculoController = TextEditingController();
-  final duracionController = TextEditingController();
-  final costoController = TextEditingController();
+  final controller = Get.find<DashboardController>();
 
-  showModalBottomSheet(
+  LugarDisponible? lugarSeleccionado;
+  int duracion = 1;
+  String? vehiculoSeleccionado;
+  DateTime fechaInicio = DateTime.now().add(const Duration(minutes: 5));
+
+  showDialog(
     context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (_) {
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          left: 20,
-          right: 20,
-          top: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Nueva Reserva", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            TextField(controller: lugarController, decoration: const InputDecoration(labelText: 'Lugar')),
-            TextField(controller: vehiculoController, decoration: const InputDecoration(labelText: 'Vehículo')),
-            TextField(
-              controller: duracionController,
-              decoration: const InputDecoration(labelText: 'Duración (horas)'),
-              keyboardType: TextInputType.number,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Nueva Reserva"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<LugarDisponible>(
+                    decoration: const InputDecoration(labelText: "Lugar"),
+                    items: controller.lugaresDisponibles.map((lugar) {
+                      return DropdownMenuItem<LugarDisponible>(
+                        value: lugar.ocupado ? null : lugar,
+                        enabled: !lugar.ocupado,
+                        child: Row(
+                          children: [
+                            Icon(
+                              lugar.ocupado ? Icons.block : Icons.check_circle,
+                              color: lugar.ocupado ? Colors.red : Colors.green,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Text("${lugar.nombre} (\$${lugar.precioPorHora}/h)"),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (lugar) {
+                      if (lugar != null) {
+                        setState(() => lugarSeleccionado = lugar);
+                      }
+                    },
+                  ),
+
+
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    initialValue: duracion.toString(),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: "Duración (horas)"),
+                    onChanged: (val) {
+                      final h = int.tryParse(val) ?? 1;
+                      setState(() => duracion = h < 1 ? 1 : h);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  if (controller.vehiculosUsuario.length > 1)
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: "Vehículo"),
+                      items: controller.vehiculosUsuario
+                          .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                          .toList(),
+                      onChanged: (v) => setState(() => vehiculoSeleccionado = v),
+                    ),
+                ],
+              ),
             ),
-            TextField(
-              controller: costoController,
-              decoration: const InputDecoration(labelText: 'Costo'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                final lugar = lugarController.text;
-                final vehiculo = vehiculoController.text;
-                final duracion = double.tryParse(duracionController.text) ?? 1.0;
-                final costo = double.tryParse(costoController.text) ?? 0.0;
+            actions: [
+              TextButton(
+                child: const Text("Cancelar"),
+                onPressed: () => Get.back(),
+              ),
+              ElevatedButton(
+                onPressed: (lugarSeleccionado != null &&
+                        duracion > 0 &&
+                        (controller.vehiculosUsuario.length == 1 ||
+                            vehiculoSeleccionado != null))
+                    ? () async{
+                        final reserva = Reserva(
+                          lugar: lugarSeleccionado!.nombre,
+                          vehiculo: vehiculoSeleccionado ??
+                              controller.vehiculosUsuario.first,
+                          inicio: fechaInicio,
+                          duracionHoras: duracion.toDouble(),
+                          costo: lugarSeleccionado!.precioPorHora * duracion,
+                          estado: EstadoReserva.proxima,
+                        );
 
-                final nueva = Reserva(
-                  lugar: lugar,
-                  vehiculo: vehiculo,
-                  inicio: DateTime.now(),
-                  duracionHoras: duracion,
-                  costo: costo,
-                  estado: EstadoReserva.proxima,
-                );
+                        controller.reservas.add(reserva);
+                        await controller.guardarReservas();
 
-                final controller = Get.find<DashboardController>();
-                controller.reservas.add(nueva);
-
-                Get.back();
-                Get.snackbar("Reserva creada", "Tu reserva fue agregada exitosamente.");
-              },
-              child: const Text("Guardar"),
-            )
-          ],
-        ),
+                        final index = controller.lugaresDisponibles.indexWhere((l) => l.id == lugarSeleccionado!.id);
+                        if (index != -1) {
+                          controller.lugaresDisponibles[index].ocupado = true;
+                          controller.lugaresDisponibles.refresh();
+                          await controller.guardarLugaresDisponibles();
+                        }
+                        Get.back();
+                        Get.snackbar("Reserva creada", "Tu nueva reserva fue agendada.");
+                      }
+                    : null, // desactiva si faltan datos
+                child: const Text("Confirmar"),
+              ),
+            ],
+          );
+        },
       );
     },
   );
