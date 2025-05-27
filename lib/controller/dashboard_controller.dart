@@ -1,18 +1,22 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'dart:io';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'package:finpay/model/reservas_model.dart';
 import 'package:finpay/model/lugar_disponible_model.dart';
 import 'package:finpay/model/usuario_model.dart';
-import 'package:path_provider/path_provider.dart'; 
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:io'; 
 
 class DashboardController extends GetxController {
   final RxList<Reserva> reservas = <Reserva>[].obs;
   final RxList<LugarDisponible> lugaresDisponibles = <LugarDisponible>[].obs;
   final RxList<String> vehiculosUsuario = ['ABC123', 'XYZ789'].obs;
-  final String nombreUsuario = "Hernan Silgueira";
+  final Rx<Usuario> usuario = Usuario(
+    nombre: 'Hernan Silgueira',
+    avatarUrl: 'assets/images/Avatar.png',
+  ).obs;
 
   // Reservas categorizadas
   List<Reserva> get reservasActuales => reservas
@@ -28,7 +32,7 @@ class DashboardController extends GetxController {
   List<Reserva> get reservasHistorial => reservas
       .where((r) => r.estado == EstadoReserva.historial)
       .toList()
-    ..sort((a, b) => b.inicio.compareTo(a.inicio)); // más recientes primero
+    ..sort((a, b) => b.inicio.compareTo(a.inicio));
 
   @override
   void onInit() {
@@ -37,53 +41,96 @@ class DashboardController extends GetxController {
     cargarLugaresDisponibles();
   }
 
-  // Cargar reservas desde mock
   Future<void> cargarMockReservas() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/mock_reservas.json');
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/mock_reservas.json');
 
-    String jsonString;
-    if (await file.exists()) {
-      jsonString = await file.readAsString();
-    } else {
-      // Si no existe, lo copia desde assets
-      jsonString = await rootBundle.loadString('assets/data/mock_reservas.json');
-      await file.writeAsString(jsonString);
+      String jsonString;
+      if (await file.exists()) {
+        jsonString = await file.readAsString();
+      } else {
+        jsonString = await rootBundle.loadString('assets/data/mock_reservas.json');
+        await file.writeAsString(jsonString);
+      }
+
+      final List<dynamic> data = json.decode(jsonString);
+      reservas.value = data.map((e) => Reserva.fromJson(e)).toList();
+    } catch (e) {
+      print('Error al cargar reservas: $e');
     }
-
-    final List<dynamic> data = json.decode(jsonString);
-    reservas.value = data.map((e) => Reserva.fromJson(e)).toList();
   }
+
   Future<void> guardarReservas() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/mock_reservas.json');
-    final data = reservas.map((r) => r.toJson()).toList();
-    await file.writeAsString(jsonEncode(data));
-  }
-  Future<void> guardarLugaresDisponibles() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/lugares.json');
-    final data = lugaresDisponibles.map((l) => l.toJson()).toList();
-    await file.writeAsString(jsonEncode(data));
-  }
-
-  // Cargar lugares desde lugares.json
-  void cargarLugaresDisponibles() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/lugares.json');
-
-    String jsonString;
-    if (await file.exists()) {
-      jsonString = await file.readAsString();
-    } else {
-      jsonString = await rootBundle.loadString('assets/data/lugares.json');
-      await file.writeAsString(jsonString); // Copia inicial
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/mock_reservas.json');
+      final data = reservas.map((r) => r.toJson()).toList();
+      await file.writeAsString(jsonEncode(data));
+    } catch (e) {
+      print('Error al guardar reservas: $e');
     }
-
-    final List<dynamic> data = json.decode(jsonString);
-    lugaresDisponibles.value = data.map((e) => LugarDisponible.fromJson(e)).toList();
   }
 
+  Future<void> cargarLugaresDisponibles() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/lugares.json');
+
+      String jsonString;
+      if (await file.exists()) {
+        jsonString = await file.readAsString();
+      } else {
+        jsonString = await rootBundle.loadString('assets/data/lugares.json');
+        await file.writeAsString(jsonString);
+      }
+
+      final List<dynamic> data = json.decode(jsonString);
+      lugaresDisponibles.value = data.map((e) => LugarDisponible.fromJson(e)).toList();
+    } catch (e) {
+      print('Error al cargar lugares: $e');
+    }
+  }
+
+  Future<void> guardarLugaresDisponibles() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/lugares.json');
+      final data = lugaresDisponibles.map((l) => l.toJson()).toList();
+      await file.writeAsString(jsonEncode(data));
+    } catch (e) {
+      print('Error al guardar lugares: $e');
+    }
+  }
+
+  Future<void> crearReserva({
+    required String lugar,
+    required int duracionHoras,
+    required String vehiculo,
+  }) async {
+    final lugarObj = lugaresDisponibles.firstWhereOrNull(
+      (l) => l.nombre == lugar && !l.ocupado,
+    );
+
+    if (lugarObj == null) return;
+
+    final costo = lugarObj.precioPorHora * duracionHoras;
+
+    final nueva = Reserva(
+      lugar: lugar,
+      vehiculo: vehiculo,
+      inicio: DateTime.now(),
+      duracionHoras: duracionHoras.toDouble(),
+      costo: costo,
+      estado: EstadoReserva.actual,
+    );
+
+    reservas.add(nueva);
+    lugarObj.ocupado = true;
+    lugaresDisponibles.refresh();
+    await guardarReservas();
+    await guardarLugaresDisponibles();
+  }
 
   void repetirReserva(Reserva reserva) {
     final nueva = Reserva(
@@ -112,20 +159,12 @@ class DashboardController extends GetxController {
     }
   }
 
-
   void ocuparLugar(String nombreLugar) {
     final index = lugaresDisponibles.indexWhere((l) => l.nombre == nombreLugar);
     if (index != -1) {
-      lugaresDisponibles[index].ocupado = false;
+      lugaresDisponibles[index].ocupado = true;
       lugaresDisponibles.refresh();
       guardarLugaresDisponibles();
     }
   }
-  final Rx<Usuario> usuario = Usuario(
-    nombre: 'Hernan Silgueira',
-    avatarUrl: 'assets/images/Avatar.png', // avatar placeholder
-  ).obs;
-
-  
-
 }

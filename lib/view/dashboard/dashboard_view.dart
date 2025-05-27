@@ -1,38 +1,62 @@
-import 'package:finpay/view/statistics/statistics_view.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:finpay/controller/dashboard_controller.dart';
 import 'package:finpay/view/dashboard/dashboard_home.dart';
-import 'package:finpay/view/card/card_view.dart';
 import 'package:finpay/view/profile/profile_view.dart';
+import 'package:finpay/view/card/card_view.dart';
 
-class DashboardView extends StatelessWidget {
-  final DashboardController controller = Get.put(DashboardController());
-  final RxInt selectedIndex = 0.obs;
+class DashboardView extends StatefulWidget {
+  @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
 
-  final List<Widget> pages = [
+class _DashboardViewState extends State<DashboardView> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
     DashboardHome(),
     CardView(),
     ProfileView(),
-    StatisticsView(),
   ];
 
-  DashboardView({super.key});
+  final List<String> _titles = [
+    'Inicio',
+    'Métodos de Pago',
+    'Perfil',
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  final List<BottomNavigationBarItem> _bottomItems = const [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.dashboard),
+      label: 'Inicio',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.credit_card),
+      label: 'Pagos',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.person),
+      label: 'Perfil',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
-          body: pages[selectedIndex.value],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: selectedIndex.value,
-            onTap: (index) => selectedIndex.value = index,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: 'Card'),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-            ],
-          ),
-        ));
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: _bottomItems,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+      ),
+    );
   }
-  
 }

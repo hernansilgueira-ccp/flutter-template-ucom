@@ -1,26 +1,3 @@
 [
-  {
-    "lugar": "Shopping Central",
-    "vehiculo": "ABC123",
-    "inicio": "2025-05-22T10:00:00",
-    "duracionHoras": 2.5,
-    "costo": 180,
-    "estado": "actual"
-  },
-  {
-    "lugar": "Shopping Norte",
-    "vehiculo": "XYZ789",
-    "inicio": "2025-05-23T15:00:00",
-    "duracionHoras": 1.5,
-    "costo": 120,
-    "estado": "proxima"
-  },
-  {
-    "lugar": "Shopping Sur",
-    "vehiculo": "DEF456",
-    "inicio": "2025-05-20T18:00:00",
-    "duracionHoras": 1.25,
-    "costo": 100,
-    "estado": "historial"
-  }
+  
 ]

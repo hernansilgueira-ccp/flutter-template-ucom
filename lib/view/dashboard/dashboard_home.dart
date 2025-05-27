@@ -28,30 +28,21 @@ class DashboardHome extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return ListView(
-          children: [
-            if (controller.reservasActuales.isNotEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: Text("Reservas Actuales", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              ...controller.reservasActuales.map((r) => _buildReservaCard(r)),
-            ],
-            if (controller.reservasProximas.isNotEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: Text("Reservas Próximas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              ...controller.reservasProximas.map((r) => _buildReservaCard(r)),
-            ],
-            if (controller.reservasHistorial.isNotEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: Text("Historial", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              ...controller.reservasHistorial.map((r) => _buildReservaCard(r)),
-            ],
-          ],
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (controller.reservasActuales.isNotEmpty)
+                  _buildSection("Reservas Actuales", controller.reservasActuales),
+                if (controller.reservasProximas.isNotEmpty)
+                  _buildSection("Próximas Reservas", controller.reservasProximas),
+                if (controller.reservasHistorial.isNotEmpty)
+                  _buildSection("Historial", controller.reservasHistorial),
+              ],
+            ),
+          ),
         );
       }),
       floatingActionButton: FloatingActionButton(
@@ -61,24 +52,49 @@ class DashboardHome extends StatelessWidget {
     );
   }
 
+  Widget _buildSection(String title, List<Reserva> reservas) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        ...reservas.map(_buildReservaCard).toList(),
+      ],
+    );
+  }
+
   Widget _buildReservaCard(Reserva r) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        leading: const Icon(Icons.local_parking),
-        title: Text(r.lugar),
+        leading: Icon(Icons.local_parking, color: _estadoColor(r.estado)),
+        title: Text(r.lugar, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
-          "${r.inicio.day}/${r.inicio.month}/${r.inicio.year} - ${r.duracionHoras}h\nEstado: ${r.estado.name}",
+          "${r.inicio.day}/${r.inicio.month}/${r.inicio.year} "
+          "- ${r.duracionHoras.toInt()}h\n"
+          "Estado: ${r.estado.name}",
         ),
         trailing: Text(
-          "\$${r.costo}",
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          "\$${r.costo.toStringAsFixed(2)}",
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
         ),
-        onTap: () {
-          Get.to(() => ReservaDetalleView(reserva: r));
-        },
+        onTap: () => Get.to(() => ReservaDetalleView(reserva: r)),
       ),
     );
+  }
+
+  Color _estadoColor(EstadoReserva estado) {
+    switch (estado) {
+      case EstadoReserva.actual:
+        return Colors.green;
+      case EstadoReserva.proxima:
+        return Colors.orange;
+      case EstadoReserva.historial:
+        return Colors.grey;
+    }
   }
 
   void _mostrarFormularioReserva(BuildContext context) {
@@ -98,12 +114,12 @@ class DashboardHome extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<LugarDisponible>(
-                    decoration: const InputDecoration(labelText: "Lugar"),
+                    decoration: const InputDecoration(labelText: "Lugar disponible"),
                     items: controller.lugaresDisponibles
                         .where((l) => !l.ocupado)
                         .map((l) => DropdownMenuItem(
                               value: l,
-                              child: Text("${l.nombre} (\$${l.precioPorHora}/h)"),
+                              child: Text("${l.nombre} - \$${l.precioPorHora}/h"),
                             ))
                         .toList(),
                     onChanged: (lugar) => setState(() => lugarSeleccionado = lugar),
@@ -143,8 +159,7 @@ class DashboardHome extends StatelessWidget {
                     ? () {
                         final reserva = Reserva(
                           lugar: lugarSeleccionado!.nombre,
-                          vehiculo: vehiculoSeleccionado ??
-                              controller.vehiculosUsuario.first,
+                          vehiculo: vehiculoSeleccionado ?? controller.vehiculosUsuario.first,
                           inicio: fechaInicio,
                           duracionHoras: duracion.toDouble(),
                           costo: lugarSeleccionado!.precioPorHora * duracion,
@@ -152,15 +167,11 @@ class DashboardHome extends StatelessWidget {
                         );
 
                         controller.reservas.add(reserva);
-                        final index = controller.lugaresDisponibles.indexWhere(
-                            (l) => l.id == lugarSeleccionado!.id);
-                        if (index != -1) {
-                          controller.lugaresDisponibles[index].ocupado = true;
-                          controller.lugaresDisponibles.refresh();
-                        }
+                        controller.ocuparLugar(reserva.lugar);
+                        controller.guardarReservas();
 
                         Get.back();
-                        Get.snackbar("Reserva creada", "Tu nueva reserva fue agendada.");
+                        Get.snackbar("✅ Reserva creada", "Tu nueva reserva fue agendada correctamente.");
                       }
                     : null,
                 child: const Text("Confirmar"),
