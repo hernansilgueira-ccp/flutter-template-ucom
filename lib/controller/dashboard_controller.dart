@@ -24,10 +24,9 @@ class DashboardController extends GetxController {
       .toList()
     ..sort((a, b) => a.inicio.compareTo(b.inicio));
 
-  List<Reserva> get reservasProximas => reservas
-      .where((r) => r.estado == EstadoReserva.proxima)
-      .toList()
-    ..sort((a, b) => a.inicio.compareTo(b.inicio));
+  List<Reserva> get reservasProximas =>
+      reservas.where((r) => r.estado == EstadoReserva.proxima).toList()
+        ..sort((a, b) => a.inicio.compareTo(b.inicio));
 
   List<Reserva> get reservasHistorial => reservas
       .where((r) => r.estado == EstadoReserva.historial)
@@ -141,7 +140,10 @@ class DashboardController extends GetxController {
       costo: reserva.costo,
       estado: EstadoReserva.proxima,
     );
+
     reservas.add(nueva);
+    reservas.refresh();
+    await guardarReservas();
   }
 
   Future<void> cancelarReserva(Reserva reserva) async {

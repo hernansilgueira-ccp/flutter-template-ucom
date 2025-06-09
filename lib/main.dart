@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:finpay/config/textstyle.dart';
+import 'package:finpay/view/dashboard/dashboard_view.dart';
 import 'package:finpay/controller/dashboard_controller.dart';
 import 'package:finpay/view/splash/splash.dart';
 import 'package:flutter/material.dart';
