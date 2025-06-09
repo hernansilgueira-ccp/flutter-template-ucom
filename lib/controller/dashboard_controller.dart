@@ -1,172 +1,142 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:finpay/model/reservas_model.dart';
+import '../model/reservas_model.dart';
+import '../model/usuario_model.dart';
+import '../model/pago_model.dart';
 import 'package:finpay/model/lugar_disponible_model.dart';
-import 'package:finpay/model/usuario_model.dart';
 
 class DashboardController extends GetxController {
-  final RxList<Reserva> reservas = <Reserva>[].obs;
-  final RxList<LugarDisponible> lugaresDisponibles = <LugarDisponible>[].obs;
-  final RxList<String> vehiculosUsuario = ['ABC123', 'XYZ789'].obs;
-  final Rx<Usuario> usuario = Usuario(
-    nombre: 'Hernan Silgueira',
-    avatarUrl: 'assets/images/Avatar.png',
-  ).obs;
+  RxList<Reserva> reservas = <Reserva>[].obs;
+  RxList<LugarDisponible> lugares = <LugarDisponible>[].obs;
+  Rx<Usuario> usuario = Usuario(nombre: "Invitado", avatar: "").obs;
+  RxList<Pago> pagos = <Pago>[].obs;
 
-  // Reservas categorizadas
-  List<Reserva> get reservasActuales => reservas
-      .where((r) => r.estado == EstadoReserva.actual)
-      .toList()
-    ..sort((a, b) => a.inicio.compareTo(b.inicio));
-
-  List<Reserva> get reservasProximas =>
-      reservas.where((r) => r.estado == EstadoReserva.proxima).toList()
-        ..sort((a, b) => a.inicio.compareTo(b.inicio));
-
-  List<Reserva> get reservasHistorial => reservas
-      .where((r) => r.estado == EstadoReserva.historial)
-      .toList()
-    ..sort((a, b) => b.inicio.compareTo(a.inicio));
+  final String reservasFile = 'assets/data/reservas.json';
+  final String lugaresFile = 'assets/data/lugares.json';
+  final String pagosFile = 'assets/data/pagos.json';
 
   @override
   void onInit() {
     super.onInit();
-    cargarMockReservas();
-    cargarLugaresDisponibles();
+    cargarDatos();
   }
 
-  Future<void> cargarMockReservas() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/mock_reservas.json');
+  Future<void> cargarDatos() async {
+  try {
+    await cargarReservas();
+  } catch (e, stack) {
+    print('Error al cargar reservas: $e');
+    print(stack);
+  }
 
-      String jsonString;
-      if (await file.exists()) {
-        jsonString = await file.readAsString();
-      } else {
-        jsonString = await rootBundle.loadString('assets/data/mock_reservas.json');
-        await file.writeAsString(jsonString);
-      }
+  try {
+    await cargarLugares();
+  } catch (e, stack) {
+    print('Error al cargar lugares: $e');
+    print(stack);
+  }
 
-      final List<dynamic> data = json.decode(jsonString);
+  try {
+    await cargarPagos();
+  } catch (e, stack) {
+    print('Error al cargar pagos: $e');
+    print(stack);
+  }
+}
+
+
+  Future<File> _getLocalFile(String filename) async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/$filename');
+  }
+
+  Future<void> cargarReservas() async {
+    final file = await _getLocalFile('reservas.json');
+    if (await file.exists()) {
+      final contenido = await file.readAsString();
+      final data = jsonDecode(contenido) as List;
       reservas.value = data.map((e) => Reserva.fromJson(e)).toList();
-    } catch (e) {
-      print('Error al cargar reservas: $e');
+    } else {
+      final contenido = await rootBundle.loadString(reservasFile);
+      final data = jsonDecode(contenido) as List;
+      reservas.value = data.map((e) => Reserva.fromJson(e)).toList();
     }
   }
 
   Future<void> guardarReservas() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/mock_reservas.json');
-      final data = reservas.map((r) => r.toJson()).toList();
-      await file.writeAsString(jsonEncode(data));
-    } catch (e) {
-      print('Error al guardar reservas: $e');
+    final file = await _getLocalFile('reservas.json');
+    await file.writeAsString(jsonEncode(reservas.map((e) => e.toJson()).toList()));
+  }
+
+  Future<void> cargarLugares() async {
+    final file = await _getLocalFile('lugares.json');
+    if (await file.exists()) {
+      final contenido = await file.readAsString();
+      final data = jsonDecode(contenido) as List;
+      lugares.value = data.map((e) => LugarDisponible.fromJson(e)).toList();
+    } else {
+      final contenido = await rootBundle.loadString(lugaresFile);
+      final data = jsonDecode(contenido) as List;
+      lugares.value = data.map((e) => LugarDisponible.fromJson(e)).toList();
     }
   }
 
-  Future<void> cargarLugaresDisponibles() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/lugares.json');
+  Future<void> guardarLugares() async {
+    final file = await _getLocalFile('lugares.json');
+    await file.writeAsString(jsonEncode(lugares.map((e) => e.toJson()).toList()));
+  }
 
-      String jsonString;
-      if (await file.exists()) {
-        jsonString = await file.readAsString();
-      } else {
-        jsonString = await rootBundle.loadString('assets/data/lugares.json');
-        await file.writeAsString(jsonString);
-      }
-
-      final List<dynamic> data = json.decode(jsonString);
-      lugaresDisponibles.value = data.map((e) => LugarDisponible.fromJson(e)).toList();
-    } catch (e) {
-      print('Error al cargar lugares: $e');
+  Future<void> cargarPagos() async {
+    final file = await _getLocalFile('pagos.json');
+    if (await file.exists()) {
+      final contenido = await file.readAsString();
+      final data = jsonDecode(contenido) as List;
+      pagos.value = data.map((e) => Pago.fromJson(e)).toList();
+    } else {
+      pagos.clear();
     }
   }
 
-  Future<void> guardarLugaresDisponibles() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/lugares.json');
-      final data = lugaresDisponibles.map((l) => l.toJson()).toList();
-      await file.writeAsString(jsonEncode(data));
-    } catch (e) {
-      print('Error al guardar lugares: $e');
-    }
+  Future<void> guardarPagos() async {
+    final file = await _getLocalFile('pagos.json');
+    await file.writeAsString(jsonEncode(pagos.map((e) => e.toJson()).toList()));
   }
 
-  Future<void> crearReserva({
-    required String lugar,
-    required int duracionHoras,
-    required String vehiculo,
-  }) async {
-    final lugarObj = lugaresDisponibles.firstWhereOrNull(
-      (l) => l.nombre == lugar && !l.ocupado,
+  Future<void> registrarPago(Reserva reserva, String metodoPago) async {
+    final nuevoPago = Pago(
+      id: pagos.length + 1,
+      reservaId: reserva.id,
+      metodo: metodoPago,
+      fecha: DateTime.now(),
+      monto: reserva.costo,
     );
 
-    if (lugarObj == null) return;
+    pagos.add(nuevoPago);
+    await guardarPagos();
 
-    final costo = lugarObj.precioPorHora * duracionHoras;
-
-    final nueva = Reserva(
-      lugar: lugar,
-      vehiculo: vehiculo,
-      inicio: DateTime.now(),
-      duracionHoras: duracionHoras.toDouble(),
-      costo: costo,
-      estado: EstadoReserva.actual,
-    );
-
-    reservas.add(nueva);
-    lugarObj.ocupado = true;
-    lugaresDisponibles.refresh();
-    await guardarReservas();
-    await guardarLugaresDisponibles();
-  }
-
-  void repetirReserva(Reserva reserva) {
-    final nueva = Reserva(
-      lugar: reserva.lugar,
-      vehiculo: reserva.vehiculo,
-      inicio: DateTime.now().add(const Duration(minutes: 5)),
-      duracionHoras: reserva.duracionHoras,
-      costo: reserva.costo,
-      estado: EstadoReserva.proxima,
-    );
-
-    reservas.add(nueva);
-    reservas.refresh();
-    await guardarReservas();
-  }
-
-  Future<void> cancelarReserva(Reserva reserva) async {
-    final index = reservas.indexOf(reserva);
+    final index = reservas.indexWhere((r) => r.id == reserva.id);
     if (index != -1) {
-      reservas[index] = reserva.copyWith(estado: EstadoReserva.historial);
+      reservas[index] = reservas[index].copyWith(pagado: true);
       await guardarReservas();
     }
-
-    final lugar = lugaresDisponibles.firstWhereOrNull((l) => l.nombre == reserva.lugar);
-    if (lugar != null) {
-      lugar.ocupado = false;
-      lugaresDisponibles.refresh();
-      await guardarLugaresDisponibles();
-    }
   }
 
-  void ocuparLugar(String nombreLugar) {
-    final index = lugaresDisponibles.indexWhere((l) => l.nombre == nombreLugar);
+  Future<void> cancelarReserva(int idReserva) async {
+    final index = reservas.indexWhere((r) => r.id == idReserva);
     if (index != -1) {
-      lugaresDisponibles[index].ocupado = true;
-      lugaresDisponibles.refresh();
-      guardarLugaresDisponibles();
+      final reserva = reservas[index];
+      final lugar = lugares.firstWhereOrNull((l) => l.nombre == reserva.lugar);
+      if (lugar != null) {
+        lugar.ocupado = false;
+        await guardarLugares();
+      }
+      reservas.removeAt(index);
+      await guardarReservas();
     }
   }
 }

@@ -4,53 +4,58 @@ import 'package:finpay/view/profile/profile_view.dart';
 import 'package:finpay/view/card/card_view.dart';
 
 class DashboardView extends StatefulWidget {
+  final int initialIndex;
+
+  const DashboardView({
+    Key? key,
+    this.initialIndex = 0,
+  }) : super(key: key);
+
   @override
   State<DashboardView> createState() => _DashboardViewState();
 }
 
+
+
 class _DashboardViewState extends State<DashboardView> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
-  final List<Widget> _pages = [
-    DashboardHome(),
-    CardView(),
-    ProfileView(),
-  ];
-
-  final List<String> _titles = [
-    'Inicio',
-    'Métodos de Pago',
-    'Perfil',
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
   }
-
-  final List<BottomNavigationBarItem> _bottomItems = const [
-    BottomNavigationBarItem(
-      icon: Icon(Icons.dashboard),
-      label: 'Inicio',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.credit_card),
-      label: 'Pagos',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.person),
-      label: 'Perfil',
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      DashboardHome(),
+      const CardView(),
+      const ProfileView(),
+    ];
+
+    final List<BottomNavigationBarItem> _bottomItems = const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.dashboard),
+        label: 'Inicio',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.credit_card),
+        label: 'Pagos',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Perfil',
+      ),
+    ];
+
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) => setState(() {
+          _selectedIndex = index;
+        }),
         items: _bottomItems,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,

@@ -2,7 +2,8 @@
 
 import 'package:finpay/config/images.dart';
 import 'package:finpay/controller/login_controller.dart';
-import 'package:finpay/view/dashboard/dashboard_view.dart';
+import 'package:finpay/view/login/otp_auth_screen.dart';
+import 'package:finpay/view/login/password_recovery_screen.dart';
 import 'package:finpay/view/signup/signup_screen.dart';
 import 'package:finpay/view/tab_screen.dart';
 import 'package:finpay/widgets/custom_button.dart';
@@ -14,7 +15,7 @@ import 'package:get/get.dart';
 import '../../config/textstyle.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -213,9 +214,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     loginController.pswdController.value.text);
                                 if (loginController
                                     .pswdController.value.text.isNotEmpty) {
-                                  Get.offAll(
-                                    DashboardView(),
-                                    //const TabScreen(),
+                                  Get.to(
+                                    const TabScreen(),
                                     transition: Transition.rightToLeft,
                                     duration: const Duration(milliseconds: 500),
                                   );

@@ -11,6 +11,8 @@ import 'package:finpay/view/statistics/statistics_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:finpay/controller/dashboard_controller.dart';
+
 
 class TabScreen extends StatefulWidget {
   const TabScreen({super.key});
@@ -22,6 +24,8 @@ class TabScreen extends StatefulWidget {
 class _TabScreenState extends State<TabScreen> {
   final tabController = Get.put(TabScreenController());
   final homeController = Get.put(HomeController());
+  final DashboardController dashboardController = Get.find<DashboardController>();
+
   @override
   void initState() {
     tabController.customInit();
@@ -298,7 +302,7 @@ class _TabScreenState extends State<TabScreen> {
       body: GetX<TabScreenController>(
         init: tabController,
         builder: (tabController) => tabController.pageIndex.value == 0
-            ? HomeView(homeController: homeController)
+            ? HomeView(dashboardController: dashboardController)
             : tabController.pageIndex.value == 1
                 ? const StatisticsView()
                 : tabController.pageIndex.value == 2

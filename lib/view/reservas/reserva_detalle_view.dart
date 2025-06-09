@@ -64,7 +64,7 @@ class ReservaDetalleView extends StatelessWidget {
                       backgroundColor: HexColor(AppTheme.primaryColorString!),
                     ),
                     onPressed: () {
-                      controller.repetirReserva(reserva);
+                      //controller.repetirReserva(reserva);
                       Get.back();
                       Get.snackbar("Reserva creada", "Tu nueva reserva fue agendada.");
                     },

@@ -73,6 +73,7 @@ flutter:
     - assets/country_code.json
     - flags/
     - assets/data/mock_reservas.json
+    - assets/data/pagos.json
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

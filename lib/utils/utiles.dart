@@ -1,14 +1,16 @@
 import 'package:intl/intl.dart';
 
 class UtilesApp {
-  /// Retorna la fecha en formato dd-MM-yyyy
   static String formatearFechaDdMMAaaa(DateTime fecha) {
-    final dia = fecha.day.toString().padLeft(2, '0');
-    final mes = fecha.month.toString().padLeft(2, '0');
-    final anho = fecha.year.toString();
-    return '$dia-$mes-$anho';
+    return "${fecha.day.toString().padLeft(2, '0')}/"
+           "${fecha.month.toString().padLeft(2, '0')}/"
+           "${fecha.year}";
   }
 
+  static String formatearHoraHHmm(DateTime fecha) {
+    final formato = DateFormat('HH:mm');
+    return formato.format(fecha);
+  }
   static String formatearGuaranies(num monto) {
     final formatter = NumberFormat.currency(
       locale: 'es_PY',
