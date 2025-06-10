@@ -1,79 +1,92 @@
-import 'package:flutter/material.dart';
+import 'lugar_disponible_model.dart';
 
 enum EstadoReserva { activa, completada, cancelada }
 
 class Reserva {
-  final int id;
-  final String lugar;
+  final String id;
+  final LugarDisponible lugar;
   final String vehiculo;
-  final DateTime inicio;
-  final double duracionHoras;
-  final double costo;
+  final DateTime fechaHoraInicio;
+  final DateTime fechaHoraFin;
+  final double precio;
   final EstadoReserva estado;
-  bool pagado;
-
-  DateTime get fin => inicio.add(Duration(hours: duracionHoras.toInt()));
+  final String? metodoPago;
+  final bool pagado;
 
   Reserva({
     required this.id,
     required this.lugar,
     required this.vehiculo,
-    required this.inicio,
-    required this.duracionHoras,
-    required this.costo,
+    required this.fechaHoraInicio,
+    required this.fechaHoraFin,
+    required this.precio,
     required this.estado,
+    this.metodoPago,
     this.pagado = false,
   });
 
-  factory Reserva.fromJson(Map<String, dynamic> json) {
-  print('Parsing reserva: $json');
-  return Reserva(
-    id: json['id'],
-    lugar: json['lugar'],
-    vehiculo: json['vehiculo'],
-    inicio: DateTime.parse(json['inicio']),
-    duracionHoras: (json['duracionHoras'] ?? 1).toDouble(),
-    costo: (json['costo'] ?? 0).toDouble(),
-    estado: EstadoReserva.values.firstWhere(
-      (e) => e.name == json['estado'],
-      orElse: () => EstadoReserva.activa,
-    ),
-    pagado: json['pagado'] ?? false,
-  );
-}
+  factory Reserva.fromJson(Map<String, dynamic> json, List<LugarDisponible> lugares) {
+    final lugarId = json['lugarId'] ?? '';
+    final lugar = lugares.firstWhere(
+      (l) => l.id == lugarId,
+      orElse: () => LugarDisponible(
+        id: lugarId,
+        nombre: 'Desconocido',
+        precioPorHora: 0.0,
+        ocupado: false,
+      ),
+    );
 
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'lugar': lugar,
-      'vehiculo': vehiculo,
-      'inicio': inicio.toIso8601String(),
-      'duracionHoras': duracionHoras,
-      'costo': costo,
-      'estado': estado.name,
-      'pagado': pagado,
-    };
-  }
-
-  Reserva copyWith({
-    String? lugar,
-    String? vehiculo,
-    DateTime? inicio,
-    double? duracionHoras,
-    double? costo,
-    EstadoReserva? estado,
-    bool? pagado,
-  }) {
     return Reserva(
-      id: id,
-      lugar: lugar ?? this.lugar,
-      vehiculo: vehiculo ?? this.vehiculo,
-      inicio: inicio ?? this.inicio,
-      duracionHoras: duracionHoras ?? this.duracionHoras,
-      costo: costo ?? this.costo,
-      estado: estado ?? this.estado,
-      pagado: pagado ?? this.pagado,
+      id: json['id'] ?? '',
+      lugar: lugar,
+      vehiculo: json['vehiculo'] ?? '',
+      fechaHoraInicio: DateTime.tryParse(json['fechaHoraInicio'] ?? '') ?? DateTime.now(),
+      fechaHoraFin: DateTime.tryParse(json['fechaHoraFin'] ?? '') ?? DateTime.now(),
+      precio: (json['precio'] ?? 0).toDouble(),
+      estado: EstadoReserva.values.firstWhere(
+        (e) => e.toString() == 'EstadoReserva.${json['estado']}',
+        orElse: () => EstadoReserva.activa,
+      ),
+      metodoPago: json['metodoPago'],
+      pagado: json['pagado'] ?? false,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'lugarId': lugar.id,
+        'vehiculo': vehiculo,
+        'fechaHoraInicio': fechaHoraInicio.toIso8601String(),
+        'fechaHoraFin': fechaHoraFin.toIso8601String(),
+        'precio': precio,
+        'estado': estado.name,
+        'metodoPago': metodoPago,
+        'pagado': pagado, 
+      };
+  Reserva copyWith({
+      String? id,
+      LugarDisponible? lugar,
+      String? vehiculo,
+      DateTime? fechaHoraInicio,
+      DateTime? fechaHoraFin,
+      double? precio,
+      EstadoReserva? estado,
+      String? metodoPago,
+      bool? pagado,
+    }) {
+    return Reserva(
+      id: id ?? this.id,
+      lugar: lugar ?? this.lugar,
+      vehiculo: vehiculo ?? this.vehiculo,
+      fechaHoraInicio: fechaHoraInicio ?? this.fechaHoraInicio,
+      fechaHoraFin: fechaHoraFin ?? this.fechaHoraFin,
+      precio: precio ?? this.precio,
+      estado: estado ?? this.estado,
+      metodoPago: metodoPago ?? this.metodoPago,
+       pagado: pagado ?? this.pagado,
+    );
+  }
+  double get duracionHoras =>
+      fechaHoraFin.difference(fechaHoraInicio).inMinutes / 60.0;
 }

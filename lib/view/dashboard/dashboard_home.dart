@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'package:finpay/controller/dashboard_controller.dart';
 import 'package:finpay/model/lugar_disponible_model.dart';
 import 'package:finpay/model/reservas_model.dart';
-import 'package:finpay/widgets/reservas_proximas_widget.dart';
-
 
 class DashboardHome extends StatefulWidget {
   const DashboardHome({super.key});
@@ -23,7 +21,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         title: Obx(() => Text("Hola, ${controller.usuario.value.nombre}")),
         actions: [
           CircleAvatar(
-            backgroundImage: AssetImage(controller.usuario.value.avatarUrl),
+            backgroundImage: AssetImage(controller.usuario.value.avatar),
           ),
           const SizedBox(width: 16),
         ],
@@ -42,29 +40,28 @@ class _DashboardHomeState extends State<DashboardHome> {
             const SizedBox(height: 20),
             const Text("Historial", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ...controller.reservasHistorial.map((r) => _buildReservaCard(r, Colors.grey)),
-
-            const SizedBox(height: 20),
-            const ReservasProximasWidget(), // si quieres usar el widget adicional
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _mostrarFormularioNuevaReserva(context),
+        onPressed: () => _mostrarFormularioNuevaReserva(context), // ✅ CORRECTO
         child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildReservaCard(Reserva reserva, Color color) {
+  // Buscar el lugar asociado para obtener su precio por hora
     final lugar = controller.lugaresDisponibles.firstWhere(
-      (l) => l.descripcionLugar.trim().toLowerCase() == reserva.lugar.trim().toLowerCase(),
-      orElse: () => LugarDisponible(
-        codigoPiso: "N/A",
-        codigoLugar: "N/A",
-        descripcionLugar: reserva.lugar,
-        precioPorHora: 0.0,
-      ),
-    );
+  (l) => l.nombre.trim().toLowerCase() == reserva.lugar.nombre.trim().toLowerCase(),
+  orElse: () => LugarDisponible(
+    id: "N/A",
+    nombre: reserva.lugar.nombre,
+    precioPorHora: 0.0,
+    ocupado: false,
+  ),
+);
+
 
     final montoTotal = lugar.precioPorHora * reserva.duracionHoras;
 
@@ -72,18 +69,18 @@ class _DashboardHomeState extends State<DashboardHome> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         leading: Icon(Icons.local_parking, color: color),
-        title: Text(reserva.lugar),
+        title: Text(reserva.lugar.nombre),
         subtitle: Text(
           "Vehículo: ${reserva.vehiculo}\n"
-          "Inicio: ${reserva.inicio}\n"
+          "Inicio: ${reserva.fechaHoraInicio}\n"
           "Duración: ${reserva.duracionHoras}h\n"
-          "Monto a pagar: \$${reserva.costo.toStringAsFixed(2)}",
+          "Monto a pagar: \$${reserva.precio.toStringAsFixed(2)}",
         ),
-        trailing: reserva.estado != EstadoReserva.historial
+        trailing: reserva.estado != EstadoReserva.completada
             ? IconButton(
                 icon: const Icon(Icons.cancel),
                 onPressed: () async {
-                  await controller.cancelarReserva(reserva);
+                  await controller.cancelarReserva(int.parse((reserva.id)));
                   setState(() {});
                 },
               )
@@ -92,17 +89,20 @@ class _DashboardHomeState extends State<DashboardHome> {
     );
   }
 
+
+
+
   void _mostrarFormularioNuevaReserva(BuildContext context) {
     final controller = Get.find<DashboardController>();
     final _formKey = GlobalKey<FormState>();
-    DateTime? fechaSeleccionada;
+
     LugarDisponible? lugarSeleccionado;
     String? vehiculoSeleccionado;
     int duracion = 1;
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
+      builder: (_) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text("Nueva Reserva"),
           content: Form(
@@ -122,7 +122,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                         .where((l) => !l.ocupado)
                         .map((l) => DropdownMenuItem(
                               value: l,
-                              child: Text("${l.descripcionLugar} - \$${l.precioPorHora}/h"),
+                              child: Text("${l.nombre} - \$${l.precioPorHora}/h"),
                             ))
                         .toList(),
                     onChanged: (lugar) {
@@ -162,57 +162,27 @@ class _DashboardHomeState extends State<DashboardHome> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () async {
-                      final DateTime? fecha = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 30)),
-                      );
-
-                      if (fecha != null) {
-                        final TimeOfDay? hora = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-
-                        if (hora != null) {
-                          fechaSeleccionada = DateTime(
-                            fecha.year,
-                            fecha.month,
-                            fecha.day,
-                            hora.hour,
-                            hora.minute,
-                          );
-                          setState(() {});
-                        }
-                      }
-                    },
-                    child: Text(
-                      fechaSeleccionada == null
-                          ? 'Seleccionar fecha y hora'
-                          : fechaSeleccionada.toString(),
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancelar"),
+            ),
             ElevatedButton(
               onPressed: () async {
                 if (_formKey.currentState?.validate() != true) return;
 
                 final lugar = lugarSeleccionado!;
                 final vehiculo = vehiculoSeleccionado!;
-
+                final duracionSeleccionada = duracion.toDouble();
+          
                 await controller.crearReserva(
-                  lugar: lugar,
-                  duracionHoras: duracion,
+                  lugarSeleccionado: lugar,
+                  duracionHoras: duracionSeleccionada,
                   vehiculo: vehiculo,
-                  inicio: fechaSeleccionada ?? DateTime.now(),
                 );
 
                 Navigator.pop(context);

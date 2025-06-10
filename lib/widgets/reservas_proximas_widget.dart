@@ -26,7 +26,7 @@ class ReservasProximasWidget extends StatelessWidget {
           const SizedBox(height: 8),
           ...reservas.map((r) => ListTile(
                 leading: const Icon(Icons.schedule),
-                title: Text(r.lugar),
+                title: Text(r.lugar.nombre),
                 subtitle: Text(
                   '${r.inicio} - ${r.vehiculo}',
                   style: const TextStyle(fontSize: 12),

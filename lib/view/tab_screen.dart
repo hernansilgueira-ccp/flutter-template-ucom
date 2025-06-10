@@ -24,7 +24,7 @@ class TabScreen extends StatefulWidget {
 class _TabScreenState extends State<TabScreen> {
   final tabController = Get.put(TabScreenController());
   final homeController = Get.put(HomeController());
-  final DashboardController dashboardController = Get.find<DashboardController>();
+  //final DashboardController dashboardController = Get.find<DashboardController>();
 
   @override
   void initState() {
@@ -302,7 +302,7 @@ class _TabScreenState extends State<TabScreen> {
       body: GetX<TabScreenController>(
         init: tabController,
         builder: (tabController) => tabController.pageIndex.value == 0
-            ? HomeView(dashboardController: dashboardController)
+            ? HomeView(homeController: homeController)
             : tabController.pageIndex.value == 1
                 ? const StatisticsView()
                 : tabController.pageIndex.value == 2
