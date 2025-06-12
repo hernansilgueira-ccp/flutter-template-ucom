@@ -1,14 +1,12 @@
 [
   {
     "id": "1",
-    "nombre": "Lugar A",
-    "precioPorHora": 10.0,
-    "ocupado": false
-  },
-  {
-    "id": "2",
-    "nombre": "Lugar B",
-    "precioPorHora": 12.5,
-    "ocupado": true
+    "lugarId": "L1",
+    "vehiculo": "ABC123",
+    "fechaHoraInicio": "2025-06-01T10:00:00",
+    "fechaHoraFin": "2025-06-01T12:00:00",
+    "precio": 200,
+    "estado": "activa",
+    "pagado": false
   }
 ]

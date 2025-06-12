@@ -1,6 +1,6 @@
 class Pago {
   final int id;
-  final int reservaId;
+  final String reservaId;
   final String metodo;
   final DateTime fecha;
   final double monto;

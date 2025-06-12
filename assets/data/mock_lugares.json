@@ -1,0 +1,8 @@
+[
+  {
+    "id": "L1",
+    "nombre": "Estacionamiento A",
+    "precioPorHora": 100.0,
+    "ocupado": false
+  }
+]

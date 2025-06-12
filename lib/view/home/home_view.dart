@@ -12,6 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../controller/dashboard_controller.dart';
+import 'package:finpay/view/home/widget/home_feature_counters.dart';
+import 'package:finpay/view/home/widget/pagos_realizados_mes.dart';
+import 'package:finpay/view/home/widget/pagos_pendientes.dart';
 
 class HomeView extends StatelessWidget {
   final HomeController homeController;
@@ -159,6 +162,7 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
+                /*
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SizedBox(
@@ -180,7 +184,11 @@ class HomeView extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),*/
+                const HomeFeatureCounters(),
+                const PagosRealizadosMes(),
                 const SizedBox(height: 20),
+                const PagosPendientes(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -272,7 +280,8 @@ class HomeView extends StatelessWidget {
 
                                       if (confirmar == true) {
                                         for (final idx in seleccionadas) {
-                                          await controller.pagarReservaActual(reservas[idx],'Tarjeta de crédito');
+                                          await controller.registrarPago(reservas[idx],'Tarjeta de crédito');
+                                          //await controller.pagarReservaActual(reservas[idx],'Tarjeta de crédito');
                                         }
                                         Get.back(); // cerrar selección
                                         Get.snackbar('Pago realizado',

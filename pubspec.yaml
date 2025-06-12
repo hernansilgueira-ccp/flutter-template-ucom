@@ -74,6 +74,15 @@ flutter:
     - flags/
     - assets/data/mock_reservas.json
     - assets/data/pagos.json
+    - assets/data/lugares.json
+    - assets/data/autos.json
+    - assets/data/clientes.json
+    - assets/data/mock_lugares.json
+    - assets/data/pisos.json
+    - assets/data/reservas.json
+    - assets/data/vehiculos.json
+    
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -128,15 +128,18 @@ class _FormularioReservaState extends State<FormularioReserva> {
     if (!_formKey.currentState!.validate() || _fechaInicio == null || _lugarSeleccionado == null) return;
 
     final lugar = _lugarSeleccionado!;
+    final fechaFin = _fechaInicio!.add(Duration(hours: _duracionHoras.toInt()));
     final costo = lugar.precioPorHora * _duracionHoras;
 
+
     final nuevaReserva = Reserva(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       lugar: lugar,
       vehiculo: _vehiculoController.text,
-      inicio: _fechaInicio!,
-      duracionHoras: _duracionHoras,
-      costo: costo,
+      fechaHoraInicio: _fechaInicio!,
+      fechaHoraFin: fechaFin,
+      //duracionHoras: _duracionHoras,
+      precio: costo,
       estado: EstadoReserva.activa,
       pagado: false,
     );

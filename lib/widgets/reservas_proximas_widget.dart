@@ -28,7 +28,7 @@ class ReservasProximasWidget extends StatelessWidget {
                 leading: const Icon(Icons.schedule),
                 title: Text(r.lugar.nombre),
                 subtitle: Text(
-                  '${r.inicio} - ${r.vehiculo}',
+                  '${r.fechaHoraInicio} - ${r.vehiculo}',
                   style: const TextStyle(fontSize: 12),
                 ),
               )),

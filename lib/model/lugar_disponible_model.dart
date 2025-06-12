@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class LugarDisponible {
   final String id;
   final String nombre;
@@ -13,15 +11,24 @@ class LugarDisponible {
     this.ocupado = false,
   });
 
-  factory LugarDisponible.fromJson(Map<String, dynamic> json) {
-    return LugarDisponible(
-      id: json['id'] ??'',
-      nombre: json['nombre'] ?? 'Desconocido',
-      precioPorHora: (json['precioPorHora'] ?? 0).toDouble(),
-      ocupado: json['ocupado'] ?? false,
-    );
+  factory LugarDisponible.fromJson(Map<String, dynamic> json) => LugarDisponible(
+        id: json['id'] ?? json['codigoLugar'] ?? '',
+        nombre: json['nombre'] ?? json['descripcionLugar'] ?? '',
+        precioPorHora: (json['precioPorHora'] as num).toDouble(),
+        ocupado: json['ocupado'] ?? false,
+      );
+
+  /// Serializa usando las claves del JSON de entrada/salida (para guardar en archivo)
+  Map<String, dynamic> toJsonArchivo() {
+    return {
+      'codigoLugar': id,
+      'descripcionLugar': nombre,
+      'precioPorHora': precioPorHora,
+      'ocupado': ocupado,
+    };
   }
 
+  /// Serializa usando las claves internas de Dart (opcional, para otros usos)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -30,6 +37,9 @@ class LugarDisponible {
       'ocupado': ocupado,
     };
   }
+
+  void ocupar() => ocupado = true;
+  void liberar() => ocupado = false;
 
   LugarDisponible copyWith({
     String? id,
@@ -48,9 +58,7 @@ class LugarDisponible {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LugarDisponible &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+      other is LugarDisponible && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -58,6 +66,4 @@ class LugarDisponible {
   @override
   String toString() =>
       'LugarDisponible(id: $id, nombre: $nombre, precioPorHora: $precioPorHora, ocupado: $ocupado)';
-
-      
 }

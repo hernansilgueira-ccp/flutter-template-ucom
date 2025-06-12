@@ -24,9 +24,9 @@ class ReservaCard extends StatelessWidget {
             children: [
               Text('Lugar: ${reserva.lugar.nombre}', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('Vehículo: ${reserva.vehiculo}'),
-              Text('Inicio: ${reserva.inicio}'),
+              Text('Inicio: ${reserva.fechaHoraInicio}'),
               Text('Duración: ${reserva.duracionHoras} h'),
-              Text('Costo: \$${reserva.costo.toStringAsFixed(2)}'),
+              Text('Costo: \$${reserva.precio.toStringAsFixed(2)}'),
             ],
           ),
         ),

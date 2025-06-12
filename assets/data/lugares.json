@@ -1,11 +1,11 @@
 [
-  { "codigoPiso": "P1", "codigoLugar": "P1L001", "descripcionLugar": "Lugar 1","estado" :"DISPONIBLE", "precioPorHora" : 100.0},
-  { "codigoPiso": "P1", "codigoLugar": "P1L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE", "precioPorHora" : 200.0},
-  { "codigoPiso": "P2", "codigoLugar": "P2L003", "descripcionLugar": "Lugar 3" ,"estado" :"DISPONIBLE", "precioPorHora" : 300.0},
-  { "codigoPiso": "P2", "codigoLugar": "P2L004", "descripcionLugar": "Lugar 4" ,"estado" :"DISPONIBLE", "precioPorHora" : 400.0},
-  { "codigoPiso": "P3", "codigoLugar": "P3L001", "descripcionLugar": "Lugar 1" ,"estado" :"DISPONIBLE", "precioPorHora" : 500.0},
-  { "codigoPiso": "P3", "codigoLugar": "P3L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE", "precioPorHora" : 600.0},
-  { "codigoPiso": "P4", "codigoLugar": "P4L001", "descripcionLugar": "Lugar 1" ,"estado" :"DISPONIBLE", "precioPorHora" : 700.0},
-  { "codigoPiso": "P4", "codigoLugar": "P4L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE", "precioPorHora" : 800.0}
-  
+  { "codigoPiso": "P1", "codigoLugar": "P1L001", "descripcionLugar": "Lugar 1","estado" :"DISPONIBLE", "precioPorHora" : 100.0,"ocupado" : false},
+  { "codigoPiso": "P1", "codigoLugar": "P1L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE", "precioPorHora" : 200.0,"ocupado" : false},
+  { "codigoPiso": "P2", "codigoLugar": "P2L003", "descripcionLugar": "Lugar 3" ,"estado" :"DISPONIBLE", "precioPorHora" : 300.0,"ocupado" : false},
+  { "codigoPiso": "P2", "codigoLugar": "P2L004", "descripcionLugar": "Lugar 4" ,"estado" :"DISPONIBLE", "precioPorHora" : 400.0,"ocupado" : false},
+  { "codigoPiso": "P3", "codigoLugar": "P3L001", "descripcionLugar": "Lugar 1" ,"estado" :"DISPONIBLE", "precioPorHora" : 500.0,"ocupado" : false},
+  { "codigoPiso": "P3", "codigoLugar": "P3L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE", "precioPorHora" : 600.0,"ocupado" : false},
+  { "codigoPiso": "P4", "codigoLugar": "P4L001", "descripcionLugar": "Lugar 1" ,"estado" :"DISPONIBLE", "precioPorHora" : 700.0,"ocupado" : false},
+  { "codigoPiso": "P4", "codigoLugar": "P4L002", "descripcionLugar": "Lugar 2" ,"estado" :"DISPONIBLE", "precioPorHora" : 800.0,"ocupado" : false}
+
 ]
