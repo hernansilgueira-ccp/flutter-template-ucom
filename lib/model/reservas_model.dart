@@ -11,7 +11,7 @@ class Reserva {
   final double precio;
   final EstadoReserva estado;
   final String? metodoPago;
-  final bool pagado;
+  bool pagado;
 
   Reserva({
     required this.id,
@@ -84,7 +84,7 @@ class Reserva {
       precio: precio ?? this.precio,
       estado: estado ?? this.estado,
       metodoPago: metodoPago ?? this.metodoPago,
-       pagado: pagado ?? this.pagado,
+      pagado: pagado ?? this.pagado,
     );
   }
   double get duracionHoras =>

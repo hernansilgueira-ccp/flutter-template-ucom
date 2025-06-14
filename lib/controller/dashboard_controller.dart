@@ -18,7 +18,7 @@ class DashboardController extends GetxController {
   Rx<Usuario> usuario = Usuario(
   nombre: "Hernan Silgueira",
   avatar: "",
-  vehiculos: ["ABC123", "DEF456"], // <-- PON AQUÍ LAS PLACAS QUE QUIERES QUE VEA EL USUARIO
+  vehiculos: ["ABC123", "DEF456","XYZ777"], // <-- PON AQUÍ LAS PLACAS QUE QUIERES QUE VEA EL USUARIO
 ).obs;
   RxList<Pago> pagos = <Pago>[].obs;
   RxList<Vehiculo> vehiculos = <Vehiculo>[].obs; // <-- NUEVO: lista de todos los vehículos
@@ -226,6 +226,7 @@ class DashboardController extends GetxController {
 
   void agregarReserva(Reserva nuevaReserva) {
     reservas.add(nuevaReserva);
+    
     update();
   }
 
@@ -233,33 +234,48 @@ class DashboardController extends GetxController {
     final reservaPagada = reserva.copyWith(
       estado: EstadoReserva.completada,
       metodoPago: metodoPago,
+      //pagado: true,
     );
     final index = reservas.indexWhere((r) => r.id == reserva.id);
     if (index != -1) {
-      reservas[index] = reservaPagada;
+      reservas[index] = reservaPagada;     
       await guardarReservas();
       update();
     }
   }
   Future<void> registrarPago(Reserva reserva, String metodoPago) async {
-    final nuevoPago = Pago(
-      id: pagos.length + 1,
-      reservaId: reserva.id,
-      metodo: metodoPago,
-      fecha: DateTime.now(),
-      monto: reserva.precio,
+  final nuevoPago = Pago(
+    id: pagos.length + 1,
+    reservaId: reserva.id,
+    metodo: metodoPago,
+    fecha: DateTime.now(),
+    monto: reserva.precio,
+  );
+  pagos.add(nuevoPago);
+  await guardarPagos();
+
+  // Marcar la reserva como pagada/completada
+  final index = reservas.indexWhere((r) => r.id == reserva.id);
+  if (index != -1) {
+    reservas[index] = reservas[index].copyWith(
+      metodoPago: metodoPago,
+      estado: EstadoReserva.completada,
+      pagado: true,
     );
-    pagos.add(nuevoPago);
-    await guardarPagos();
-    final index = reservas.indexWhere((r) => r.id == reserva.id);
-    if (index != -1) {
-      reservas[index] = reservas[index].copyWith(
-        metodoPago: metodoPago,
-        estado: EstadoReserva.completada,
-      );
-      await guardarReservas();
-    }
+    await guardarReservas();
   }
+
+  // *** LIBERAR EL LUGAR ***
+  final lugarIndex = lugares.indexWhere((l) => l.id == reserva.lugar.id);
+  if (lugarIndex != -1) {
+    lugares[lugarIndex] = lugares[lugarIndex].copyWith(
+      ocupado: false,
+    );
+    await guardarLugares();
+  }
+
+  update();
+}
 
   Future<void> cancelarReserva(int idReserva) async {
     final index = reservas.indexWhere((r) => r.id == idReserva);

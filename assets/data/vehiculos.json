@@ -1,4 +1,5 @@
 [
   { "id": "1", "placa": "ABC123", "marca": "Toyota", "modelo": "Corolla", "color": "Rojo" },
-  { "id": "2", "placa": "DEF456", "marca": "Honda", "modelo": "Civic", "color": "Azul" }
+  { "id": "2", "placa": "DEF456", "marca": "Honda", "modelo": "Civic", "color": "Azul" },
+  { "id": "2", "placa": "XYZ777", "marca": "Nissan", "modelo": "Sunny", "color": "Blanco" }
 ]

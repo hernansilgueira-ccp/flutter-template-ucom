@@ -33,181 +33,195 @@ class _DashboardHomeState extends State<DashboardHome> {
           padding: const EdgeInsets.all(16),
           children: [
             const Text("Reservas actuales", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ...controller.reservasActuales.map((r) => _buildReservaCard(r, Colors.green)),
-
+            ...controller.reservasActuales
+            .where((r) {
+              final lugarActual = controller.lugares.firstWhere(
+                (l) => l.id == r.lugar.id,
+                orElse: () => r.lugar,
+              );
+              return !lugarActual.ocupado;
+            })
+            .map((r) => _buildReservaCard(r, Colors.green)),
+            
             const SizedBox(height: 20),
             const Text("Próximas reservas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ...controller.reservasProximas.map((r) => _buildReservaCard(r, Colors.blue)),
+            ...controller.reservasProximas
+            .where((r) {
+              final lugarActual = controller.lugares.firstWhere(
+                (l) => l.id == r.lugar.id,
+                orElse: () => r.lugar,
+              );
+              return !lugarActual.ocupado;
+            })
+            .map((r) => _buildReservaCard(r, Colors.blue)),
 
             const SizedBox(height: 20),
             const Text("Historial", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ...controller.reservasHistorial.map((r) => _buildReservaCard(r, Colors.grey)),
+            ...controller.reservasHistorial
+            .where((r) {
+              final lugarActual = controller.lugares.firstWhere(
+                (l) => l.id == r.lugar.id,
+                orElse: () => r.lugar,
+              );
+              return !lugarActual.ocupado;
+            })
+            .map((r) => _buildReservaCard(r, Colors.grey)),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => mostrarFormularioNuevaReserva(context,controller), // ✅ CORRECTO
+        onPressed: () => mostrarFormularioNuevaReserva(context,controller),
         child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildReservaCard(Reserva reserva, Color color) {
-  final lugar = controller.lugares.firstWhere(
-    (l) => l.nombre.trim().toLowerCase() == reserva.lugar.nombre.trim().toLowerCase(),
-    orElse: () => reserva.lugar,
-  );
+    final lugar = controller.lugares.firstWhere(
+      (l) => l.nombre.trim().toLowerCase() == reserva.lugar.nombre.trim().toLowerCase(),
+      orElse: () => reserva.lugar,
+    );
 
-  // Buscar detalles del vehículo
-  final vehiculo = controller.vehiculos.firstWhereOrNull(
-    (v) => v.placa == reserva.vehiculo,
-  );
+    final bool ocupado = lugar.ocupado;
+    final Color codigoColor = ocupado ? Colors.red : Colors.green;
 
-  String vehiculoInfo;
-  if (vehiculo != null) {
-    vehiculoInfo = "${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa}) - ${vehiculo.color}";
-  } else {
-    vehiculoInfo = reserva.vehiculo; // fallback si no lo encuentra
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        leading: Icon(Icons.local_parking, color: color),
+        title: Text(
+          'Código: ${lugar.id}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: codigoColor,
+          ),
+        ),
+        trailing: reserva.estado != EstadoReserva.completada
+            ? IconButton(
+                icon: const Icon(Icons.cancel),
+                onPressed: () async {
+                  await controller.cancelarReserva(int.parse((reserva.id)));
+                  setState(() {});
+                },
+              )
+            : null,
+      ),
+    );
   }
 
-  return Card(
-    margin: const EdgeInsets.symmetric(vertical: 8),
-    child: ListTile(
-      leading: Icon(Icons.local_parking, color: color),
-      title: Text(reserva.lugar.nombre),
-      subtitle: Text(
-        "Vehículo: $vehiculoInfo\n"
-        "Inicio: ${reserva.fechaHoraInicio}\n"
-        "Duración: ${reserva.duracionHoras}h\n"
-        "Monto a pagar: \$${reserva.precio.toStringAsFixed(2)}",
-      ),
-      trailing: reserva.estado != EstadoReserva.completada
-          ? IconButton(
-              icon: const Icon(Icons.cancel),
-              onPressed: () async {
-                await controller.cancelarReserva(int.parse((reserva.id)));
-                setState(() {});
-              },
-            )
-          : null,
-    ),
-  );
-}
-
-
-
-
   void mostrarFormularioNuevaReserva(BuildContext context, DashboardController controller) {
-  LugarDisponible? _lugarSeleccionado;
-  String? _vehiculoSeleccionado;
-  double _duracionHoras = 1;
+    LugarDisponible? _lugarSeleccionado;
+    String? _vehiculoSeleccionado;
+    double _duracionHoras = 1;
 
-  //if (controller.lugaresDisponibles.isEmpty || controller.vehiculosUsuario.isEmpty) {
-  //  return const Center(child: Text("No hay lugares ni vehículos disponibles."));
-  //}
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Nueva Reserva"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Dropdown de lugares disponibles (solo código, coloreado, deshabilita los ocupados)
+                  DropdownButtonFormField<LugarDisponible>(
+  decoration: const InputDecoration(labelText: 'Código del lugar'),
+  value: _lugarSeleccionado,
+  items: controller.lugaresDisponibles
+      .where((lugar) => !lugar.ocupado) // solo los libres
+      .map((lugar) {
+        return DropdownMenuItem<LugarDisponible>(
+          value: lugar,
+          child: Text(
+            'Código: ${lugar.id}',
+            style: const TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }).toList(),
+  onChanged: (value) {
+    setState(() {
+      _lugarSeleccionado = value;
+    });
+  },
+),
+                  const SizedBox(height: 10),
 
+                  // Dropdown de vehículos del usuario
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Vehículo'),
+                    value: _vehiculoSeleccionado,
+                    items: controller.vehiculosUsuarioDetalles.map((vehiculo) {
+                      return DropdownMenuItem(
+                        value: vehiculo.placa,
+                        child: Text('${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _vehiculoSeleccionado = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text("Nueva Reserva"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Dropdown de lugares disponibles
-                DropdownButtonFormField<LugarDisponible>(
-                  decoration: const InputDecoration(labelText: 'Lugar disponible'),
-                  value: _lugarSeleccionado,
-                  items: controller.lugaresDisponibles.map((lugar) {
-                    return DropdownMenuItem(
-                      value: lugar,
-                      child: Text(lugar.nombre),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _lugarSeleccionado = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // Dropdown de vehículos del usuario
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Vehículo'),
-                value: _vehiculoSeleccionado,
-                items: controller.vehiculosUsuarioDetalles.map((vehiculo) {
-                  return DropdownMenuItem(
-                    value: vehiculo.placa,
-                    child: Text('${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})'),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _vehiculoSeleccionado = value;
-                  });
-                },
+                  // Dropdown de duración
+                  DropdownButtonFormField<double>(
+                    decoration: const InputDecoration(labelText: 'Duración (horas)'),
+                    value: _duracionHoras,
+                    items: [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0].map((hora) {
+                      return DropdownMenuItem(
+                        value: hora,
+                        child: Text('$hora h'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _duracionHoras = value!;
+                      });
+                    },
+                  ),
+                ],
               ),
-                const SizedBox(height: 10),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancelar"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_lugarSeleccionado == null || _vehiculoSeleccionado == null) return;
 
-                // Dropdown de duración
-                DropdownButtonFormField<double>(
-                  decoration: const InputDecoration(labelText: 'Duración (horas)'),
-                  value: _duracionHoras,
-                  items: [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0].map((hora) {
-                    return DropdownMenuItem(
-                      value: hora,
-                      child: Text('$hora h'),
+                    final inicio = DateTime.now();
+                    final fin = inicio.add(Duration(minutes: (_duracionHoras * 60).toInt()));
+                    final costo = _lugarSeleccionado!.precioPorHora * _duracionHoras;
+
+                    final reserva = Reserva(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      lugar: _lugarSeleccionado!,
+                      vehiculo: _vehiculoSeleccionado!,
+                      fechaHoraInicio: inicio,
+                      fechaHoraFin: fin,
+                      precio: costo,
+                      estado: EstadoReserva.activa,
+                      pagado: false,
                     );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _duracionHoras = value!;
-                    });
+
+                    controller.agregarReserva(reserva);
+                    controller.update();
+                    Navigator.pop(context);
                   },
+                  child: const Text("Confirmar"),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancelar"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (_lugarSeleccionado == null || _vehiculoSeleccionado == null) return;
-
-                  final inicio = DateTime.now();
-                  final fin = inicio.add(Duration(minutes: (_duracionHoras * 60).toInt()));
-                  final costo = _lugarSeleccionado!.precioPorHora * _duracionHoras;
-
-                  final reserva = Reserva(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    lugar: _lugarSeleccionado!,
-                    vehiculo: _vehiculoSeleccionado!,
-                    fechaHoraInicio: inicio,
-                    fechaHoraFin: fin,
-                    precio: costo,
-                    estado: EstadoReserva.activa,
-                    pagado: false,
-                  );
-
-                  controller.agregarReserva(reserva);
-                  controller.update();
-                  Navigator.pop(context);
-                },
-                child: const Text("Confirmar"),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
+            );
+          },
+        );
+      },
+    );
+  }
 }

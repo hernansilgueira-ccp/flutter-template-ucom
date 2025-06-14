@@ -281,6 +281,9 @@ class HomeView extends StatelessWidget {
                                       if (confirmar == true) {
                                         for (final idx in seleccionadas) {
                                           await controller.registrarPago(reservas[idx],'Tarjeta de crédito');
+                                          reservas[idx].pagado = true;
+                                          reservas[idx].lugar.ocupado = false;
+
                                           //await controller.pagarReservaActual(reservas[idx],'Tarjeta de crédito');
                                         }
                                         Get.back(); // cerrar selección
